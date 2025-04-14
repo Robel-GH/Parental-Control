@@ -1,0 +1,246 @@
+{% extends "layout.html" %}
+
+{% block title %}Parent Dashboard | Parental Control App{% endblock %}
+
+{% block styles %}
+<style>
+    .stats-card {
+        transition: transform 0.3s ease;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .browsing-history-list {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .browsing-history-list li {
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .browsing-history-list li:last-child {
+        border-bottom: none;
+    }
+    
+    .history-time {
+        font-size: 0.8rem;
+        color: #888;
+        margin-left: 10px;
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 300px;
+        margin-bottom: 20px;
+    }
+    
+    .refresh-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 10;
+    }
+    
+    .refresh-btn:hover {
+        background: #f5f5f5;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div class="container">
+        <h1 class="dashboard-title">Parent Dashboard</h1>
+        <p>Monitor your child's device usage, location, and activities</p>
+    </div>
+</div>
+
+<div class="container" id="dashboard-container">
+    <div class="row">
+        <div class="col-12" style="margin-bottom: 20px;">
+            <label for="child-selector" class="form-label">Select Child:</label>
+            <select id="child-selector" class="form-select">
+                <!-- Child options will be loaded dynamically -->
+                <option value="">Loading children...</option>
+            </select>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-4">
+            <div class="stats-card">
+                <h3>Daily Screen Time</h3>
+                <div class="stats-card-value" id="total-usage-time">0h 0m</div>
+                <div class="stats-card-label">Today's Usage</div>
+            </div>
+        </div>
+        
+        <div class="col-4">
+            <div class="stats-card">
+                <h3>Most Used App</h3>
+                <div class="stats-card-value" id="most-used-app">None</div>
+                <div class="stats-card-label">Today</div>
+            </div>
+        </div>
+        
+        <div class="col-4">
+            <div class="stats-card">
+                <h3>Geofence Status</h3>
+                <div class="stats-card-value" id="geofence-status">
+                    <i class="fas fa-check-circle" style="color: var(--success-color);"></i>
+                </div>
+                <div class="stats-card-label">All Clear</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row" style="margin-top: 30px;">
+        <div class="col-6">
+            <div class="card">
+                <div class="card-header">
+                    App Usage Distribution
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <div class="refresh-btn" id="refresh-usage-btn" title="Refresh Data">
+                            <i class="fas fa-sync-alt"></i>
+                        </div>
+                        <canvas id="app-usage-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-6">
+            <div class="card">
+                <div class="card-header">
+                    Weekly Screen Time
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <div class="refresh-btn" id="refresh-screen-time-btn" title="Refresh Data">
+                            <i class="fas fa-sync-alt"></i>
+                        </div>
+                        <canvas id="weekly-screen-time-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row" style="margin-top: 30px;">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    Recent Browsing History
+                </div>
+                <div class="card-body">
+                    <div class="refresh-btn" id="refresh-history-btn" title="Refresh Data">
+                        <i class="fas fa-sync-alt"></i>
+                    </div>
+                    <div id="browsing-history">
+                        <p>Loading browsing history...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row" style="margin-top: 30px;">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    Quick Actions
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-4">
+                            <a href="{{ url_for('main.parent_location') }}" class="btn btn-primary" style="width: 100%;">
+                                <i class="fas fa-map-marker-alt"></i> View Location
+                            </a>
+                        </div>
+                        <div class="col-4">
+                            <a href="{{ url_for('main.parent_messaging') }}" class="btn btn-info" style="width: 100%;">
+                                <i class="fas fa-comments"></i> Message Child
+                            </a>
+                        </div>
+                        <div class="col-4">
+                            <a href="{{ url_for('main.parent_settings') }}" class="btn btn-secondary" style="width: 100%;">
+                                <i class="fas fa-cogs"></i> Manage Settings
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/dashboard.js"></script>
+<script>
+    // Additional initialization for the dashboard
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set current user for the frontend scripts
+        currentUser = {
+            id: "{{ g.user.id }}",
+            role: "{{ g.user.role }}"
+        };
+        
+        // Mock API endpoint for children
+        // This will be replaced by the real API endpoint in the backend
+        if (!window.fetch._original) {
+            const originalFetch = window.fetch;
+            window.fetch._original = originalFetch;
+            
+            window.fetch = function(url, options) {
+                if (url === '/api/children') {
+                    // Mock response with child data
+                    return new Promise((resolve) => {
+                        setTimeout(() => {
+                            resolve({
+                                ok: true,
+                                json: () => Promise.resolve([
+                                    { id: 1, username: "{{ g.user.username }}'s Child" }
+                                ])
+                            });
+                        }, 300);
+                    });
+                } else if (url.startsWith('/api/child/')) {
+                    // Mock response for child info
+                    return new Promise((resolve) => {
+                        setTimeout(() => {
+                            resolve({
+                                ok: true,
+                                json: () => Promise.resolve({
+                                    id: 1,
+                                    username: "{{ g.user.username }}'s Child"
+                                })
+                            });
+                        }, 300);
+                    });
+                }
+                
+                return originalFetch(url, options);
+            };
+        }
+    });
+</script>
+{% endblock %}
