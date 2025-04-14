@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeGuard - Parental Control App</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body>
+    <header class="bg-primary text-white py-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-4">SafeGuard</h1>
+                    <p class="lead">Comprehensive Parental Control Solution</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <a href="/login" class="btn btn-light me-2">Login</a>
+                    <a href="/register" class="btn btn-outline-light">Register</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container my-5">
+        <section class="row mb-5">
+            <div class="col-md-6">
+                <h2>Protect Your Children Online</h2>
+                <p class="lead">
+                    SafeGuard helps you monitor and protect your children's digital activities 
+                    while respecting their privacy and teaching responsible technology use.
+                </p>
+                <a href="/register" class="btn btn-primary btn-lg">Get Started</a>
+            </div>
+            <div class="col-md-6 text-center">
+                <div class="feature-image">
+                    <i data-feather="shield" class="feature-icon"></i>
+                </div>
+            </div>
+        </section>
+
+        <section class="row mb-5">
+            <h2 class="text-center mb-4">Key Features</h2>
+            
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <i data-feather="clock" class="feature-icon-sm"></i>
+                    <h3>Screen Time Analytics</h3>
+                    <p>Monitor app usage and set healthy screen time limits for your children.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <i data-feather="map-pin" class="feature-icon-sm"></i>
+                    <h3>Location Monitoring</h3>
+                    <p>Track your child's location in real-time and view location history.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <i data-feather="message-circle" class="feature-icon-sm"></i>
+                    <h3>Secure Messaging</h3>
+                    <p>Built-in secure messaging platform for parent-child communication.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <i data-feather="globe" class="feature-icon-sm"></i>
+                    <h3>Web Browsing History</h3>
+                    <p>Monitor web browsing activities to ensure safe online exploration.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <i data-feather="alert-triangle" class="feature-icon-sm"></i>
+                    <h3>Geo-Fencing</h3>
+                    <p>Create safe zones and get alerts when your child enters or leaves them.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <i data-feather="bell" class="feature-icon-sm"></i>
+                    <h3>SOS Alerts</h3>
+                    <p>Emergency alert system for your child to request immediate help.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="privacy-notice p-4 bg-light rounded">
+            <h3>Privacy Notice</h3>
+            <p>
+                SafeGuard is committed to protecting your family's privacy. Our app collects only the data necessary 
+                to provide monitoring services, and we never share your information with third parties.
+            </p>
+            <p>
+                We believe in transparent monitoring that respects children's dignity while keeping them safe. 
+                We recommend discussing monitoring with your children and explaining why it's important.
+            </p>
+        </section>
+    </main>
+
+    <footer class="bg-dark text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>SafeGuard</h5>
+                    <p>Protecting children in the digital age</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p>&copy; 2023 SafeGuard. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            feather.replace();
+        });
+    </script>
+</body>
+</html>
