@@ -1,0 +1,99 @@
+{% extends "layout.html" %}
+
+{% block title %}Register | Parental Control App{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 600px; margin-top: 50px;">
+    <div class="card">
+        <div class="card-header">
+            <h2 style="margin: 0;">Register</h2>
+        </div>
+        <div class="card-body">
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="alert alert-danger">
+                        {% for message in messages %}
+                            {{ message }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+            
+            <form method="post">
+                <div class="form-group">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" id="username" name="username" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" id="email" name="email" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" id="password" name="password" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirm_password" class="form-label">Confirm Password</label>
+                    <input type="password" id="confirm_password" name="confirm_password" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="role" class="form-label">Account Type</label>
+                    <select id="role" name="role" class="form-select" required>
+                        <option value="parent">Parent Account</option>
+                        <option value="child">Child Account</option>
+                    </select>
+                </div>
+                
+                <div id="parent-field" class="form-group" style="display: none;">
+                    <label for="parent_username" class="form-label">Parent's Username</label>
+                    <input type="text" id="parent_username" name="parent_username" class="form-control">
+                    <small class="text-muted">Required for child accounts. Enter the username of the parent account.</small>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Register</button>
+                </div>
+            </form>
+        </div>
+        <div class="card-footer" style="text-align: center;">
+            <p style="margin: 0;">Already have an account? <a href="{{ url_for('auth.login') }}">Login</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const roleSelect = document.getElementById('role');
+        const parentField = document.getElementById('parent-field');
+        
+        // Show/hide parent username field based on account type
+        roleSelect.addEventListener('change', function() {
+            if (this.value === 'child') {
+                parentField.style.display = 'block';
+                document.getElementById('parent_username').required = true;
+            } else {
+                parentField.style.display = 'none';
+                document.getElementById('parent_username').required = false;
+            }
+        });
+        
+        // Confirm password validation
+        const form = document.querySelector('form');
+        const password = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirm_password');
+        
+        form.addEventListener('submit', function(e) {
+            if (password.value !== confirmPassword.value) {
+                e.preventDefault();
+                alert('Passwords do not match');
+            }
+        });
+    });
+</script>
+{% endblock %}
