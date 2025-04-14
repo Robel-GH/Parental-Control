@@ -1,0 +1,411 @@
+{% extends "layout.html" %}
+
+{% block title %}Settings | Parental Control App{% endblock %}
+
+{% block styles %}
+<style>
+    .settings-section {
+        margin-bottom: 30px;
+    }
+    
+    .settings-section-title {
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+    }
+    
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 34px;
+    }
+    
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+    
+    input:checked + .slider {
+        background-color: var(--primary-color);
+    }
+    
+    input:checked + .slider:before {
+        transform: translateX(26px);
+    }
+    
+    .setting-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .setting-item:last-child {
+        border-bottom: none;
+    }
+    
+    .setting-label {
+        font-weight: 500;
+    }
+    
+    .setting-description {
+        color: #666;
+        margin: 5px 0 0 0;
+        font-size: 0.9rem;
+    }
+    
+    .setting-control {
+        display: flex;
+        align-items: center;
+    }
+    
+    .time-limit-input {
+        width: 80px;
+        text-align: center;
+        margin-right: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div class="container">
+        <h1 class="dashboard-title">Parent Settings</h1>
+        <p>Customize monitoring and control settings for your child's devices</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-12" style="margin-bottom: 20px;">
+            <label for="child-selector" class="form-label">Configure Settings For:</label>
+            <select id="child-selector" class="form-select">
+                <!-- Child options will be loaded dynamically -->
+                <option value="">Loading children...</option>
+            </select>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-8">
+            <div class="card">
+                <div class="card-header">
+                    Monitoring Settings
+                </div>
+                <div class="card-body">
+                    <div class="settings-section">
+                        <h3 class="settings-section-title">App Usage Monitoring</h3>
+                        
+                        <div class="setting-item">
+                            <div>
+                                <div class="setting-label">App Usage Tracking</div>
+                                <p class="setting-description">Track which apps are being used and for how long</p>
+                            </div>
+                            <div class="setting-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" checked id="app-tracking-toggle">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div>
+                                <div class="setting-label">Daily Screen Time Limit</div>
+                                <p class="setting-description">Set a maximum daily screen time allowance</p>
+                            </div>
+                            <div class="setting-control">
+                                <input type="number" class="form-control time-limit-input" id="screen-time-limit" min="0" max="24" value="2"> 
+                                <span>hours</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h3 class="settings-section-title">Web Browsing Monitoring</h3>
+                        
+                        <div class="setting-item">
+                            <div>
+                                <div class="setting-label">Web History Tracking</div>
+                                <p class="setting-description">Monitor websites visited on the device</p>
+                            </div>
+                            <div class="setting-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" checked id="web-tracking-toggle">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div>
+                                <div class="setting-label">Content Filtering</div>
+                                <p class="setting-description">Block access to inappropriate websites</p>
+                            </div>
+                            <div class="setting-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" checked id="content-filter-toggle">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h3 class="settings-section-title">Location Monitoring</h3>
+                        
+                        <div class="setting-item">
+                            <div>
+                                <div class="setting-label">Location Tracking</div>
+                                <p class="setting-description">Track your child's device location</p>
+                            </div>
+                            <div class="setting-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" checked id="location-tracking-toggle">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div>
+                                <div class="setting-label">Location Update Frequency</div>
+                                <p class="setting-description">How often to update location</p>
+                            </div>
+                            <div class="setting-control">
+                                <select class="form-select" id="location-frequency">
+                                    <option value="5">Every 5 minutes</option>
+                                    <option value="10">Every 10 minutes</option>
+                                    <option value="15" selected>Every 15 minutes</option>
+                                    <option value="30">Every 30 minutes</option>
+                                    <option value="60">Every hour</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-4">
+            <div class="card" style="margin-bottom: 20px;">
+                <div class="card-header">
+                    Notifications
+                </div>
+                <div class="card-body">
+                    <div class="setting-item">
+                        <div>
+                            <div class="setting-label">Geofence Alerts</div>
+                            <p class="setting-description">Get notified when your child enters or leaves a geofence</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked id="geofence-alerts-toggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div>
+                            <div class="setting-label">Screen Time Alerts</div>
+                            <p class="setting-description">Get notified when screen time limit is reached</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked id="screen-time-alerts-toggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div>
+                            <div class="setting-label">App Installation Alerts</div>
+                            <p class="setting-description">Get notified when new apps are installed</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked id="app-install-alerts-toggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    Account Management
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="parent-email" class="form-label">Email Address</label>
+                        <input type="email" id="parent-email" class="form-control" value="{{ g.user.email }}">
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 15px;">
+                        <label for="parent-password" class="form-label">Change Password</label>
+                        <input type="password" id="parent-password" class="form-control" placeholder="New password">
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 15px;">
+                        <label for="parent-password-confirm" class="form-label">Confirm Password</label>
+                        <input type="password" id="parent-password-confirm" class="form-control" placeholder="Confirm new password">
+                    </div>
+                    
+                    <div style="margin-top: 20px;">
+                        <button id="save-account-btn" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Changes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set current user for the frontend scripts
+        currentUser = {
+            id: "{{ g.user.id }}",
+            role: "{{ g.user.role }}"
+        };
+        
+        // Load child selector
+        function loadChildSelector() {
+            const childSelector = document.getElementById('child-selector');
+            if (!childSelector) return;
+            
+            fetch('/api/children')
+                .then(response => response.json())
+                .then(children => {
+                    // Clear existing options
+                    childSelector.innerHTML = '';
+                    
+                    // Add options for each child
+                    children.forEach(child => {
+                        const option = document.createElement('option');
+                        option.value = child.id;
+                        option.textContent = child.username;
+                        childSelector.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error loading children:', error));
+        }
+        
+        // Mock API endpoint for children
+        if (!window.fetch._original) {
+            const originalFetch = window.fetch;
+            window.fetch._original = originalFetch;
+            
+            window.fetch = function(url, options) {
+                if (url === '/api/children') {
+                    // Mock response with child data
+                    return new Promise((resolve) => {
+                        setTimeout(() => {
+                            resolve({
+                                ok: true,
+                                json: () => Promise.resolve([
+                                    { id: 1, username: "{{ g.user.username }}'s Child" }
+                                ])
+                            });
+                        }, 300);
+                    });
+                }
+                
+                return originalFetch(url, options);
+            };
+        }
+        
+        // Load child selector
+        loadChildSelector();
+        
+        // Save account button
+        const saveAccountBtn = document.getElementById('save-account-btn');
+        if (saveAccountBtn) {
+            saveAccountBtn.addEventListener('click', function() {
+                const email = document.getElementById('parent-email').value;
+                const password = document.getElementById('parent-password').value;
+                const confirmPassword = document.getElementById('parent-password-confirm').value;
+                
+                if (password && password !== confirmPassword) {
+                    alert('Passwords do not match');
+                    return;
+                }
+                
+                // For demonstration, just show an alert
+                alert('Account settings saved successfully');
+                
+                // Clear password fields
+                document.getElementById('parent-password').value = '';
+                document.getElementById('parent-password-confirm').value = '';
+            });
+        }
+        
+        // Toggle change handlers
+        const toggles = document.querySelectorAll('input[type="checkbox"]');
+        toggles.forEach(toggle => {
+            toggle.addEventListener('change', function() {
+                const settingId = this.id;
+                const isEnabled = this.checked;
+                
+                // For demonstration, just log the change
+                console.log(`Setting ${settingId} changed to ${isEnabled}`);
+            });
+        });
+        
+        // Screen time limit change handler
+        const screenTimeLimit = document.getElementById('screen-time-limit');
+        if (screenTimeLimit) {
+            screenTimeLimit.addEventListener('change', function() {
+                const hours = this.value;
+                
+                // For demonstration, just log the change
+                console.log(`Screen time limit changed to ${hours} hours`);
+            });
+        }
+        
+        // Location frequency change handler
+        const locationFrequency = document.getElementById('location-frequency');
+        if (locationFrequency) {
+            locationFrequency.addEventListener('change', function() {
+                const minutes = this.value;
+                
+                // For demonstration, just log the change
+                console.log(`Location update frequency changed to ${minutes} minutes`);
+            });
+        }
+    });
+</script>
+{% endblock %}
