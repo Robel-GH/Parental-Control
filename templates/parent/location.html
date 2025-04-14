@@ -1,0 +1,332 @@
+{% extends "layout.html" %}
+
+{% block title %}Location Tracking | Parental Control App{% endblock %}
+
+{% block styles %}
+<style>
+    .map-container {
+        height: 500px;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+        border: 1px solid #ddd;
+    }
+    
+    .geofence-controls {
+        margin-bottom: 20px;
+    }
+    
+    #geofence-form {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-radius: var(--border-radius);
+        display: none;
+    }
+    
+    .geofence-list {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .geofence-item {
+        padding: 10px 15px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+    }
+    
+    .geofence-item:hover {
+        background-color: #f5f5f5;
+    }
+    
+    .geofence-name {
+        flex: 1;
+        font-weight: 500;
+    }
+    
+    .geofence-radius {
+        margin: 0 15px;
+        color: #666;
+    }
+    
+    .location-history-item {
+        padding: 8px 0;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+    }
+    
+    .location-time {
+        color: #666;
+        font-size: 0.9rem;
+    }
+    
+    .btn-active {
+        background-color: var(--dark-color);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div class="container">
+        <h1 class="dashboard-title">Location Tracking</h1>
+        <p>Monitor your child's location and set up geofence alerts</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-12" style="margin-bottom: 20px;">
+            <label for="child-selector" class="form-label">Select Child:</label>
+            <select id="child-selector" class="form-select">
+                <!-- Child options will be loaded dynamically -->
+                <option value="">Loading children...</option>
+            </select>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-9">
+            <div class="card">
+                <div class="card-header">
+                    Live Location Map
+                </div>
+                <div class="card-body" style="padding: 0;">
+                    <div id="map-container" class="map-container"></div>
+                </div>
+                <div class="card-footer">
+                    <div class="geofence-controls">
+                        <button id="add-geofence-btn" class="btn btn-primary">
+                            <i class="fas fa-plus-circle"></i> Add Geofence
+                        </button>
+                        
+                        <form id="geofence-form">
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label for="geofence-name" class="form-label">Geofence Name</label>
+                                        <input type="text" id="geofence-name" class="form-control" placeholder="e.g. School, Home, Park" required>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label for="geofence-radius" class="form-label">Radius (meters)</label>
+                                        <input type="number" id="geofence-radius" class="form-control" min="50" max="5000" value="500" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-top: 10px;">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-save"></i> Save Geofence
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="document.getElementById('geofence-form').style.display='none';">
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-3">
+            <div class="card" style="margin-bottom: 20px;">
+                <div class="card-header">
+                    Geofences
+                </div>
+                <div class="card-body">
+                    <div id="geofence-list">
+                        <p>Loading geofences...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    Location History
+                </div>
+                <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+                    <div id="location-history">
+                        <p>Loading location history...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/location.js"></script>
+<script>
+    // Additional initialization for location tracking
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set current user for the frontend scripts
+        currentUser = {
+            id: "{{ g.user.id }}",
+            role: "{{ g.user.role }}"
+        };
+        
+        // Mock API endpoints
+        if (!window.fetch._original) {
+            const originalFetch = window.fetch;
+            window.fetch._original = originalFetch;
+            
+            window.fetch = function(url, options) {
+                if (url === '/api/children') {
+                    // Mock response with child data
+                    return new Promise((resolve) => {
+                        setTimeout(() => {
+                            resolve({
+                                ok: true,
+                                json: () => Promise.resolve([
+                                    { id: 1, username: "{{ g.user.username }}'s Child" }
+                                ])
+                            });
+                        }, 300);
+                    });
+                } else if (url.startsWith('/api/child/')) {
+                    // Mock response for child info
+                    return new Promise((resolve) => {
+                        setTimeout(() => {
+                            resolve({
+                                ok: true,
+                                json: () => Promise.resolve({
+                                    id: 1,
+                                    username: "{{ g.user.username }}'s Child"
+                                })
+                            });
+                        }, 300);
+                    });
+                } else if (url.startsWith('/api/location/current/')) {
+                    // Mock current location
+                    return new Promise((resolve) => {
+                        setTimeout(() => {
+                            resolve({
+                                ok: true,
+                                json: () => Promise.resolve({
+                                    latitude: 40.7128,
+                                    longitude: -74.0060,
+                                    timestamp: new Date().toISOString()
+                                })
+                            });
+                        }, 300);
+                    });
+                } else if (url.startsWith('/api/location/history/')) {
+                    // Mock location history
+                    return new Promise((resolve) => {
+                        setTimeout(() => {
+                            const history = [];
+                            const baseTime = new Date();
+                            
+                            // Create 10 history points, each 10 minutes apart
+                            for (let i = 0; i < 10; i++) {
+                                const time = new Date(baseTime);
+                                time.setMinutes(baseTime.getMinutes() - (i * 10));
+                                
+                                // Small random offsets for lat/long to create a path
+                                const latOffset = (Math.random() - 0.5) * 0.01;
+                                const lngOffset = (Math.random() - 0.5) * 0.01;
+                                
+                                history.push({
+                                    latitude: 40.7128 + latOffset,
+                                    longitude: -74.0060 + lngOffset,
+                                    timestamp: time.toISOString()
+                                });
+                            }
+                            
+                            resolve({
+                                ok: true,
+                                json: () => Promise.resolve(history)
+                            });
+                        }, 300);
+                    });
+                } else if (url.startsWith('/api/geofence/list/')) {
+                    // Mock geofences
+                    return new Promise((resolve) => {
+                        setTimeout(() => {
+                            resolve({
+                                ok: true,
+                                json: () => Promise.resolve([
+                                    {
+                                        id: 1,
+                                        name: 'Home',
+                                        latitude: 40.7128,
+                                        longitude: -74.0060,
+                                        radius: 500
+                                    },
+                                    {
+                                        id: 2,
+                                        name: 'School',
+                                        latitude: 40.7200,
+                                        longitude: -74.0100,
+                                        radius: 300
+                                    }
+                                ])
+                            });
+                        }, 300);
+                    });
+                } else if (url === '/api/geofence/create' && options && options.method === 'POST') {
+                    // Mock create geofence
+                    return new Promise((resolve) => {
+                        setTimeout(() => {
+                            resolve({
+                                ok: true,
+                                json: () => Promise.resolve({
+                                    success: true,
+                                    geofence_id: Math.floor(Math.random() * 1000) + 3
+                                })
+                            });
+                        }, 300);
+                    });
+                } else if (url.startsWith('/api/geofence/delete/') && options && options.method === 'POST') {
+                    // Mock delete geofence
+                    return new Promise((resolve) => {
+                        setTimeout(() => {
+                            resolve({
+                                ok: true,
+                                json: () => Promise.resolve({
+                                    success: true
+                                })
+                            });
+                        }, 300);
+                    });
+                }
+                
+                return originalFetch(url, options);
+            };
+        }
+        
+        // Display location history function
+        function displayLocationHistory() {
+            const locationHistory = document.getElementById('location-history');
+            if (!locationHistory) return;
+            
+            // Format and display mock history
+            let historyHTML = '<ul class="location-history-list" style="list-style: none; padding: 0;">';
+            
+            const baseTime = new Date();
+            for (let i = 0; i < 10; i++) {
+                const time = new Date(baseTime);
+                time.setMinutes(baseTime.getMinutes() - (i * 10));
+                
+                historyHTML += `
+                <li class="location-history-item">
+                    <span class="location-address">Location update</span>
+                    <span class="location-time">${time.toLocaleTimeString()}</span>
+                </li>`;
+            }
+            
+            historyHTML += '</ul>';
+            locationHistory.innerHTML = historyHTML;
+        }
+        
+        // Call this function after map initialization
+        setTimeout(displayLocationHistory, 1000);
+    });
+</script>
+{% endblock %}
