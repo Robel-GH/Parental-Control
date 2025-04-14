@@ -1,0 +1,276 @@
+{% extends "layout.html" %}
+
+{% block title %}Messaging | Parental Control App{% endblock %}
+
+{% block styles %}
+<style>
+    .contacts-container {
+        border-right: 1px solid #eee;
+        height: 500px;
+        overflow-y: auto;
+    }
+    
+    .contact-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .contact-item {
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+    
+    .contact-item:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .contact-item.active {
+        background-color: #e9ecef;
+        border-left: 3px solid var(--primary-color);
+    }
+    
+    .contact-name {
+        font-weight: 500;
+    }
+    
+    .chat-container {
+        display: flex;
+        flex-direction: column;
+        height: 500px;
+    }
+    
+    .chat-header {
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+        background-color: #f8f9fa;
+    }
+    
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 15px;
+        background-color: #f9f9f9;
+    }
+    
+    .message {
+        margin-bottom: 15px;
+        max-width: 80%;
+        padding: 10px 15px;
+        border-radius: 18px;
+        position: relative;
+        word-wrap: break-word;
+    }
+    
+    .message-sent {
+        margin-left: auto;
+        background-color: var(--primary-color);
+        color: white;
+        border-bottom-right-radius: 5px;
+    }
+    
+    .message-received {
+        margin-right: auto;
+        background-color: #e9ecef;
+        border-bottom-left-radius: 5px;
+    }
+    
+    .message-time {
+        display: block;
+        font-size: 0.7rem;
+        margin-top: 5px;
+        opacity: 0.8;
+        text-align: right;
+    }
+    
+    .chat-input-container {
+        display: flex;
+        padding: 15px;
+        border-top: 1px solid #eee;
+        background-color: white;
+    }
+    
+    .chat-input {
+        flex: 1;
+        border: 1px solid #ddd;
+        border-radius: 20px;
+        padding: 10px 15px;
+        margin-right: 10px;
+    }
+    
+    .empty-chat {
+        text-align: center;
+        color: #aaa;
+        margin-top: 100px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div class="container">
+        <h1 class="dashboard-title">Secure Messaging</h1>
+        <p>Communicate securely with your child</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-4">
+            <div class="card">
+                <div class="card-header">
+                    Contacts
+                </div>
+                <div class="contacts-container">
+                    <ul id="contact-list" class="contact-list">
+                        <!-- Contacts will be loaded dynamically -->
+                        <li class="contact-item">
+                            <span class="contact-name">Loading contacts...</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-8">
+            <div class="card">
+                <div class="chat-container">
+                    <div class="chat-header">
+                        <h3 id="chat-recipient">Select a contact</h3>
+                    </div>
+                    
+                    <div id="chat-messages" class="chat-messages">
+                        <div class="empty-chat">
+                            Select a contact to start messaging
+                        </div>
+                    </div>
+                    
+                    <div id="chat-input-container" class="chat-input-container" style="display: none;">
+                        <form id="message-form">
+                            <div class="chat-input-wrapper" style="display: flex;">
+                                <input type="text" id="message-input" class="chat-input" placeholder="Type a message..." autocomplete="off">
+                                <button type="submit" class="btn btn-primary" style="border-radius: 20px;">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/messaging.js"></script>
+<script>
+    // Additional initialization for messaging
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set current user for the frontend scripts
+        currentUser = {
+            id: "{{ g.user.id }}",
+            role: "{{ g.user.role }}",
+            username: "{{ g.user.username }}"
+        };
+        
+        // Mock API endpoints
+        if (!window.fetch._original) {
+            const originalFetch = window.fetch;
+            window.fetch._original = originalFetch;
+            
+            window.fetch = function(url, options) {
+                if (url === '/api/children') {
+                    // Mock response with child data
+                    return new Promise((resolve) => {
+                        setTimeout(() => {
+                            resolve({
+                                ok: true,
+                                json: () => Promise.resolve([
+                                    { id: 1, username: "{{ g.user.username }}'s Child" }
+                                ])
+                            });
+                        }, 300);
+                    });
+                } else if (url === '/api/parent') {
+                    // Mock response with parent data
+                    return new Promise((resolve) => {
+                        setTimeout(() => {
+                            resolve({
+                                ok: true,
+                                json: () => Promise.resolve({
+                                    id: 2,
+                                    username: "{{ g.user.username }}"
+                                })
+                            });
+                        }, 300);
+                    });
+                } else if (url.startsWith('/api/message/conversation/')) {
+                    // Mock conversation history
+                    return new Promise((resolve) => {
+                        setTimeout(() => {
+                            const messages = [];
+                            const baseTime = new Date();
+                            
+                            // Create 5 mock messages
+                            for (let i = 0; i < 5; i++) {
+                                const time = new Date(baseTime);
+                                time.setMinutes(baseTime.getMinutes() - (i * 5));
+                                
+                                // Alternate between sent and received
+                                const isSent = i % 2 === 0;
+                                
+                                messages.push({
+                                    id: i + 1,
+                                    sender_id: isSent ? currentUser.id : url.split('/').pop(),
+                                    receiver_id: isSent ? url.split('/').pop() : currentUser.id,
+                                    content: isSent ? 
+                                        "How was school today?" : 
+                                        "It was great! I got an A on my math test!",
+                                    timestamp: time.toISOString(),
+                                    is_read: true
+                                });
+                            }
+                            
+                            resolve({
+                                ok: true,
+                                json: () => Promise.resolve(messages)
+                            });
+                        }, 300);
+                    });
+                } else if (url === '/api/message/send' && options && options.method === 'POST') {
+                    // Mock message sending
+                    return new Promise((resolve) => {
+                        setTimeout(() => {
+                            resolve({
+                                ok: true,
+                                json: () => Promise.resolve({
+                                    success: true,
+                                    message_id: Math.floor(Math.random() * 1000) + 10
+                                })
+                            });
+                        }, 300);
+                    });
+                }
+                
+                return originalFetch(url, options);
+            };
+        }
+        
+        // Update chat recipient name when a contact is selected
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.contact-item')) {
+                const contactItem = e.target.closest('.contact-item');
+                const contactName = contactItem.querySelector('.contact-name').textContent;
+                
+                const chatRecipient = document.getElementById('chat-recipient');
+                if (chatRecipient) {
+                    chatRecipient.textContent = contactName;
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
