@@ -1,0 +1,371 @@
+{% extends "layout.html" %}
+
+{% block title %}Child Home | Parental Control App{% endblock %}
+
+{% block styles %}
+<style>
+    .stats-card {
+        transition: transform 0.3s ease;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .app-usage-list {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .app-item {
+        padding: 10px 15px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .app-item:last-child {
+        border-bottom: none;
+    }
+    
+    .app-name {
+        display: flex;
+        align-items: center;
+    }
+    
+    .app-icon {
+        width: 24px;
+        height: 24px;
+        margin-right: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 4px;
+        background-color: var(--primary-color);
+        color: white;
+    }
+    
+    .app-time {
+        font-weight: 500;
+    }
+    
+    .screen-time-progress {
+        height: 20px;
+        background-color: #e9ecef;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 10px;
+    }
+    
+    .progress-bar {
+        height: 100%;
+        background-color: var(--primary-color);
+        width: 0%;
+        transition: width 0.5s ease;
+    }
+    
+    .sos-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 20px 0;
+    }
+    
+    .sos-description {
+        text-align: center;
+        margin: 15px 0;
+        max-width: 400px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div class="container">
+        <h1 class="dashboard-title">Welcome, {{ g.user.username }}!</h1>
+        <p>Your activity dashboard and settings</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-6">
+            <div class="card">
+                <div class="card-header">
+                    Today's Screen Time
+                </div>
+                <div class="card-body">
+                    <div class="stats-card">
+                        <div class="stats-card-value" id="total-screen-time">0h 45m</div>
+                        <div class="stats-card-label">Daily Limit: <span id="screen-time-limit">2h 0m</span></div>
+                        
+                        <div class="screen-time-progress">
+                            <div class="progress-bar" id="screen-time-progress" style="width: 37.5%;"></div>
+                        </div>
+                    </div>
+                    
+                    <h4 style="margin-top: 20px;">Most Used Apps</h4>
+                    <ul class="app-usage-list">
+                        <li class="app-item">
+                            <div class="app-name">
+                                <div class="app-icon"><i class="fab fa-youtube"></i></div>
+                                YouTube
+                            </div>
+                            <div class="app-time">20m</div>
+                        </li>
+                        <li class="app-item">
+                            <div class="app-name">
+                                <div class="app-icon"><i class="fab fa-instagram"></i></div>
+                                Instagram
+                            </div>
+                            <div class="app-time">15m</div>
+                        </li>
+                        <li class="app-item">
+                            <div class="app-name">
+                                <div class="app-icon"><i class="fas fa-gamepad"></i></div>
+                                Games
+                            </div>
+                            <div class="app-time">10m</div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-6">
+            <div class="card">
+                <div class="card-header">
+                    Current Location
+                </div>
+                <div class="card-body">
+                    <div id="map-container" class="map-container" style="height: 200px;"></div>
+                    
+                    <div style="margin-top: 15px;">
+                        <div id="geofence-status">
+                            <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                                <i class="fas fa-map-marker-alt" style="color: var(--primary-color); margin-right: 5px;"></i>
+                                <span>You are currently within the <strong>Home</strong> zone</span>
+                            </div>
+                            <div style="display: flex; align-items: center;">
+                                <i class="fas fa-shield-alt" style="color: var(--success-color); margin-right: 5px;"></i>
+                                <span>Location tracking is active</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" style="margin-top: 20px;">
+                <div class="card-header">
+                    Emergency SOS
+                </div>
+                <div class="card-body">
+                    <div class="sos-container">
+                        <div id="sos-button" class="sos-button">
+                            SOS
+                        </div>
+                        <p class="sos-description">
+                            Press the SOS button in case of emergency. This will immediately alert your parent with your current location.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row" style="margin-top: 30px;">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    Quick Actions
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-4">
+                            <a href="{{ url_for('main.child_messaging') }}" class="btn btn-primary" style="width: 100%;">
+                                <i class="fas fa-comments"></i> Message Parent
+                            </a>
+                        </div>
+                        <div class="col-4">
+                            <button class="btn btn-info" style="width: 100%;" onclick="simulateAppUsage()">
+                                <i class="fas fa-sync-alt"></i> Update App Usage
+                            </button>
+                        </div>
+                        <div class="col-4">
+                            <button class="btn btn-secondary" style="width: 100%;" onclick="simulateBrowsingHistory()">
+                                <i class="fas fa-history"></i> Update Browsing History
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set current user for the frontend scripts
+        currentUser = {
+            id: "{{ g.user.id }}",
+            role: "{{ g.user.role }}"
+        };
+        
+        // Initialize map
+        const map = L.map('map-container').setView([40.7128, -74.0060], 13);
+        
+        // Add tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+        
+        // Add child marker
+        const childIcon = L.divIcon({
+            html: `<div class="child-marker" style="background-color: #4b6cb7; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>`,
+            className: 'child-marker-container',
+            iconSize: [16, 16],
+            iconAnchor: [8, 8]
+        });
+        
+        const childMarker = L.marker([40.7128, -74.0060], { icon: childIcon }).addTo(map);
+        childMarker.bindPopup(`<b>Your Location</b><br>Last updated: ${new Date().toLocaleString()}`);
+        
+        // Add home geofence
+        const homeGeofence = L.circle([40.7128, -74.0060], {
+            radius: 500,
+            color: '#182848',
+            fillColor: '#4b6cb7',
+            fillOpacity: 0.2,
+            weight: 2
+        }).addTo(map);
+        
+        // Set up SOS button
+        const sosButton = document.getElementById('sos-button');
+        if (sosButton) {
+            sosButton.addEventListener('click', function() {
+                if (confirm('Are you sure you want to send an emergency SOS alert?')) {
+                    sendSosAlert();
+                }
+            });
+        }
+        
+        // Send SOS alert
+        function sendSosAlert() {
+            fetch('/api/sos', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('SOS alert sent successfully. Your parent has been notified.');
+                } else {
+                    alert('Error sending SOS alert. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error sending SOS alert:', error);
+                alert('Error sending SOS alert. Please try again.');
+            });
+        }
+        
+        // Mock API endpoint for SOS
+        if (!window.fetch._original) {
+            const originalFetch = window.fetch;
+            window.fetch._original = originalFetch;
+            
+            window.fetch = function(url, options) {
+                if (url === '/api/sos' && options && options.method === 'POST') {
+                    // Mock SOS response
+                    return new Promise((resolve) => {
+                        setTimeout(() => {
+                            resolve({
+                                ok: true,
+                                json: () => Promise.resolve({
+                                    success: true,
+                                    notification_id: Math.floor(Math.random() * 1000) + 1
+                                })
+                            });
+                        }, 500);
+                    });
+                }
+                
+                return originalFetch(url, options);
+            };
+        }
+        
+        // Start location tracking
+        startLocationTracking();
+        
+        // Update screen time display
+        function updateScreenTimeDisplay() {
+            const screenTime = 45; // Mock screen time in minutes
+            const screenTimeLimit = 120; // Mock screen time limit in minutes
+            
+            const hours = Math.floor(screenTime / 60);
+            const minutes = screenTime % 60;
+            
+            const limitHours = Math.floor(screenTimeLimit / 60);
+            const limitMinutes = screenTimeLimit % 60;
+            
+            document.getElementById('total-screen-time').textContent = `${hours}h ${minutes}m`;
+            document.getElementById('screen-time-limit').textContent = `${limitHours}h ${limitMinutes}m`;
+            
+            // Update progress bar
+            const percentage = (screenTime / screenTimeLimit) * 100;
+            document.getElementById('screen-time-progress').style.width = `${percentage}%`;
+            
+            // Change color based on percentage
+            if (percentage > 90) {
+                document.getElementById('screen-time-progress').style.backgroundColor = 'var(--danger-color)';
+            } else if (percentage > 75) {
+                document.getElementById('screen-time-progress').style.backgroundColor = 'var(--warning-color)';
+            }
+        }
+        
+        // Call update function
+        updateScreenTimeDisplay();
+        
+        // Simulate app usage and update every 3 minutes
+        setInterval(function() {
+            // Increment screen time
+            const screenTimeElement = document.getElementById('total-screen-time');
+            const currentTime = screenTimeElement.textContent;
+            
+            // Parse hours and minutes
+            const matches = currentTime.match(/(\d+)h\s+(\d+)m/);
+            if (matches) {
+                let hours = parseInt(matches[1]);
+                let minutes = parseInt(matches[2]) + 3; // Add 3 minutes
+                
+                if (minutes >= 60) {
+                    hours += Math.floor(minutes / 60);
+                    minutes = minutes % 60;
+                }
+                
+                screenTimeElement.textContent = `${hours}h ${minutes}m`;
+                
+                // Update progress bar
+                const screenTimeLimit = 120; // 2 hours in minutes
+                const totalMinutes = (hours * 60) + minutes;
+                const percentage = (totalMinutes / screenTimeLimit) * 100;
+                
+                document.getElementById('screen-time-progress').style.width = `${percentage}%`;
+                
+                // Change color based on percentage
+                if (percentage > 90) {
+                    document.getElementById('screen-time-progress').style.backgroundColor = 'var(--danger-color)';
+                } else if (percentage > 75) {
+                    document.getElementById('screen-time-progress').style.backgroundColor = 'var(--warning-color)';
+                }
+            }
+            
+            // Call the simulate functions from main.js
+            simulateAppUsage();
+            simulateBrowsingHistory();
+        }, 180000); // Every 3 minutes
+    });
+</script>
+{% endblock %}
