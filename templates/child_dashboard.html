@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Child Dashboard - SafeGuard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <nav class="dashboard-sidebar bg-primary">
+            <div class="sidebar-header text-center py-4">
+                <h3 class="text-white">SafeGuard</h3>
+                <p class="text-light small mb-0">Child Dashboard</p>
+            </div>
+            
+            <div class="profile-section text-center py-3">
+                <div class="profile-icon">
+                    <i data-feather="smile" class="text-white"></i>
+                </div>
+                <p class="text-white mb-0 mt-2" id="child-name">Loading...</p>
+            </div>
+            
+            <ul class="nav flex-column mt-3">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#home" data-bs-toggle="tab">
+                        <i data-feather="home"></i> Home
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#screen-time" data-bs-toggle="tab">
+                        <i data-feather="clock"></i> My Screen Time
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#messaging" data-bs-toggle="tab">
+                        <i data-feather="message-square"></i> Messages
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#settings" data-bs-toggle="tab">
+                        <i data-feather="settings"></i> Settings
+                    </a>
+                </li>
+                <li class="nav-item mt-auto">
+                    <a class="nav-link text-danger" href="#" id="logout-btn">
+                        <i data-feather="log-out"></i> Logout
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="dashboard-content">
+            <!-- Emergency button -->
+            <div class="sos-button-container">
+                <button id="sos-button" class="btn btn-danger btn-lg">
+                    <i data-feather="alert-circle" class="feather-lg"></i> Emergency SOS
+                </button>
+            </div>
+            
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <!-- Home Tab -->
+                <div class="tab-pane fade show active" id="home">
+                    <h2>Welcome, <span id="child-name-header">Friend</span>!</h2>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Today's Screen Time</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-center mb-3">
+                                        <div class="screen-time-circle">
+                                            <div class="screen-time-inner">
+                                                <h3 id="today-screen-time">0</h3>
+                                                <p>minutes</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="screen-time-limit-info text-center">
+                                        <p>Daily limit: <span id="screen-time-limit">120</span> minutes</p>
+                                        <div class="progress">
+                                            <div id="screen-time-progress" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h5 class="mb-0">New Messages</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="new-messages-container">
+                                        <p class="text-center text-muted">No new messages</p>
+                                    </div>
+                                    <div class="d-grid mt-3">
+                                        <a href="#messaging" data-bs-toggle="tab" class="btn btn-primary">
+                                            <i data-feather="message-circle" class="feather-sm"></i> Open Messages
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-12 mb-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Safe Zones</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="safe-zones-map" class="map-container"></div>
+                                    <div class="safe-zones-list mt-3" id="safe-zones-list">
+                                        <p class="text-muted text-center">No safe zones found</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Screen Time Tab -->
+                <div class="tab-pane fade" id="screen-time">
+                    <h2>My Screen Time</h2>
+                    
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Daily Usage</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="child-screen-time-chart" height="250"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Top Apps</h5>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="child-top-apps-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Screen Time Tips</h5>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="list-group">
+                                        <li class="list-group-item">Take regular breaks - 5 minutes every hour</li>
+                                        <li class="list-group-item">Use the 20-20-20 rule: Every 20 minutes, look at something 20 feet away for 20 seconds</li>
+                                        <li class="list-group-item">Keep a good posture while using devices</li>
+                                        <li class="list-group-item">Reduce blue light exposure before bedtime</li>
+                                        <li class="list-group-item">Balance screen time with physical activities</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Messaging Tab -->
+                <div class="tab-pane fade" id="messaging">
+                    <h2>Messages with Parent</h2>
+                    
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="messaging-container">
+                                <div class="message-history" id="child-message-history">
+                                    <div class="text-center text-muted">
+                                        <p>Start a conversation with your parent</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="message-input">
+                                    <form id="child-message-form">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="child-message-text" placeholder="Type a message...">
+                                            <button class="btn btn-primary" type="submit">
+                                                <i data-feather="send" class="feather-sm"></i>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Settings Tab -->
+                <div class="tab-pane fade" id="settings">
+                    <h2>Settings</h2>
+                    
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Account Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="child-settings-form">
+                                <div class="mb-3">
+                                    <label for="child-settings-username" class="form-label">Username</label>
+                                    <input type="text" class="form-control" id="child-settings-username" readonly>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="child-settings-email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="child-settings-email" readonly>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="child-settings-password" class="form-label">New Password</label>
+                                    <input type="password" class="form-control" id="child-settings-password">
+                                    <div class="form-text">Leave blank to keep current password</div>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">Update Password</button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">App Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="location-sharing" checked>
+                                    <label class="form-check-label" for="location-sharing">
+                                        Share Location
+                                    </label>
+                                    <div class="form-text">Your parent needs this to keep you safe</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="app-tracking" checked>
+                                    <label class="form-check-label" for="app-tracking">
+                                        App Usage Tracking
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="web-tracking" checked>
+                                    <label class="form-check-label" for="web-tracking">
+                                        Web Browsing History
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <button id="save-app-settings" class="btn btn-primary">Save Settings</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- SOS Confirmation Modal -->
+    <div class="modal fade" id="sosConfirmModal" tabindex="-1" aria-labelledby="sosConfirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="sosConfirmModalLabel">Send Emergency Alert</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>This will send an emergency alert to your parent with your current location.</p>
+                    <p>Only use this for real emergencies.</p>
+                    
+                    <div class="mb-3">
+                        <label for="sos-message" class="form-label">Optional Message:</label>
+                        <textarea class="form-control" id="sos-message" rows="3" placeholder="Explain what's happening (optional)"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="send-sos-btn">Send Emergency Alert</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/websocket.js"></script>
+    <script src="/static/js/map.js"></script>
+    <script src="/static/js/charts.js"></script>
+    <script src="/static/js/child-dashboard.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            feather.replace();
+            
+            // Initialize dashboard
+            initializeChildDashboard();
+        });
+    </script>
+</body>
+</html>
